@@ -269,7 +269,7 @@ void env_set_default(const char *s, int flags)
 	flags |= H_DEFAULT;
 	if (himport_r(&env_htab, default_environment,
 			sizeof(default_environment), '\0', flags, 0,
-			0, NULL) == 0) {
+			0, NULL, 0) == 0) {
 		pr_err("## Error: Environment import failed: errno = %d\n",
 		       errno);
 		return;
@@ -290,7 +290,7 @@ int env_set_default_vars(int nvars, char * const vars[], int flags)
 	flags |= H_NOCLEAR | H_DEFAULT;
 	return himport_r(&env_htab, default_environment,
 				sizeof(default_environment), '\0',
-				flags, 0, nvars, vars);
+				flags, 0, nvars, vars, 0);
 }
 
 /*
@@ -313,7 +313,7 @@ int env_import(const char *buf, int check, int flags)
 	}
 
 	if (himport_r(&env_htab, (char *)ep->data, ENV_SIZE, '\0', flags, 0,
-			0, NULL)) {
+			0, NULL, 0)) {
 		gd->flags |= GD_FLG_ENV_READY;
 		return 0;
 	}
