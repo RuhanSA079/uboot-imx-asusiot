@@ -74,9 +74,6 @@
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	CONFIG_MFG_ENV_SETTINGS \
-	/* Initial environment variables */
-#define CONFIG_EXTRA_ENV_SETTINGS		\
-	CONFIG_MFG_ENV_SETTINGS \
 	JAILHOUSE_ENV \
 	"snap_mode=\"\"\0" \
 	"snap_try_core=\"\"\0" \
