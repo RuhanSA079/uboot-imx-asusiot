@@ -81,8 +81,8 @@
 	"export_env=env export -c 0x40800000 ${export_vars}; save mmc ${mmcdev}:${mmcpart} 0x40800000 /uboot.env ${filesize}\0" \
 	"conf_addr=0x800000\0"			\
 	"fdt_high=0xffffffffffffffff\0"		\
-	"mmcdev=0" \
-	"mmcpart=1" \
+	"mmcdev=0\0" \
+	"mmcpart=1\0" \
 	"snappy_boot=if test ${snap_mode} = \"try\"; then setenv snap_mode \"trying\"; run export_env; if test ${snap_try_core} != \"\"; then setenv snap_core ${snap_try_core}; fi; if test ${snap_try_kernel} != \"\"; then setenv snap_kernel ${snap_try_kernel}; fi; elif test ${snap_mode} = \"trying\"; then setenv snap_mode \"\"; run export_env; fi;\0" \
 	"snappy_bootarg=vmalloc=400M consoleblank=0 quiet rootwait fixrtc root=/dev/disk/by-label/writable init=/lib/systemd/systemd ro panic=-1 net.ifnames=0\0" \
 	"mmcautodetect=yes\0" \
