@@ -299,6 +299,11 @@ int env_set_default_vars(int nvars, char * const vars[], int flags)
  */
 int env_import(const char *buf, int check, int flags)
 {
+	char * const vars[] = {CONFIG_ENV_WHITELIST};
+	const int nvars = sizeof(vars) / sizeof(char *);
+	// first import default variables
+	set_default_env("Importing default environment...\n");
+	
 	env_t *ep = (env_t *)buf;
 
 	if (check) {
@@ -311,9 +316,8 @@ int env_import(const char *buf, int check, int flags)
 			return -ENOMSG; /* needed for env_load() */
 		}
 	}
-
-	if (himport_r(&env_htab, (char *)ep->data, ENV_SIZE, '\0', flags, 0,
-			0, NULL, 0)) {
+	/* if (himport_r(&env_htab, (char *)ep->data, ENV_SIZE, '\0', flags, 0, 0, NULL, 0)) { */
+	if (himport_r(&env_htab, (char *)ep->data, ENV_SIZE, '\0', H_NOCLEAR | H_INTERACTIVE , 0, nvars, vars, 0)) {
 		gd->flags |= GD_FLG_ENV_READY;
 		return 0;
 	}
