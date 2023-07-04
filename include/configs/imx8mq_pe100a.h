@@ -104,6 +104,7 @@
 		"fastboot 0;\0" \
 	"fi;"
 
+#undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND \
 	   "mmc dev ${mmcdev}; if mmc rescan; then " \
 		   "echo IoTnxt ASUSIoT PE100A VBoot -> Booting...;" \
