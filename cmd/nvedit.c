@@ -1002,7 +1002,7 @@ static int do_env_import(struct cmd_tbl *cmdtp, int flag,
 	}
 
 	if (!himport_r(&env_htab, ptr, size, sep, del ? 0 : H_NOCLEAR,
-		       crlf_is_lf, wl ? argc - 2 : 0, wl ? &argv[2] : NULL)) {
+		       crlf_is_lf, wl ? argc - 2 : 0, wl ? &argv[2] : NULL, 0)) {
 		pr_err("## Error: Environment import failed: errno = %d\n",
 		       errno);
 		return 1;
