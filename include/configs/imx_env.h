@@ -28,6 +28,8 @@
 #define MFG_NAND_FIT_PARTITION ""
 #endif
 
+#define CONFIG_SYS_REDUNDAND_ENVIRONMENT
+
 #if defined(CONFIG_IMX8MP)
 #define IMX_BOOT_IMAGE_GUID \
 	EFI_GUID(0x928b33bc, 0xe58b, 0x4247, 0x9f, 0x1d, \
