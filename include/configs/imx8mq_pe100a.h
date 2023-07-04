@@ -59,7 +59,7 @@
 #endif
 
 /* RuhanvdB -> Patch UBoot for Ubuntu Core 18 */
-
+#define CONFIG_ENV_WHITELIST  "snap_mode","snap_core","snap_try_core","snap_kernel","snap_try_kernel"
 /*
  * Another approach is add the clocks for inmates into clks_init_on
  * in clk-imx8mq.c, then clk_ingore_unused could be removed.
