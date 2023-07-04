@@ -58,103 +58,57 @@
 #define BOOTENV
 #endif
 
+/* RuhanvdB -> Patch UBoot for Ubuntu Core 18 */
+
 /*
  * Another approach is add the clocks for inmates into clks_init_on
  * in clk-imx8mq.c, then clk_ingore_unused could be removed.
  */
-#define JAILHOUSE_ENV \
-	"jh_clk= \0 " \
-	"jh_mmcboot=setenv fdtfile imx8mq-evk-root.dtb; " \
-		"setenv jh_clk clk_ignore_unused mem=1872M; " \
-			   "if run loadimage; then " \
-				   "run mmcboot; " \
-			   "else run jh_netboot; fi; \0" \
-	"jh_netboot=setenv fdtfile imx8mq-evk-root.dtb; setenv jh_clk clk_ignore_unused mem=1872MB; run netboot; \0 "
 
 #define CONFIG_MFG_ENV_SETTINGS \
 	CONFIG_MFG_ENV_SETTINGS_DEFAULT \
 	"initrd_addr=0x43800000\0" \
 	"initrd_high=0xffffffffffffffff\0" \
 	"emmc_dev=0\0"\
-	"sd_dev=1\0" \
 
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	CONFIG_MFG_ENV_SETTINGS \
-	BOOTENV \
+	/* Initial environment variables */
+#define CONFIG_EXTRA_ENV_SETTINGS		\
+	CONFIG_MFG_ENV_SETTINGS \
 	JAILHOUSE_ENV \
-	"prepare_mcore=setenv mcore_clk clk-imx8mq.mcore_booted;\0" \
-	"scriptaddr=0x43500000\0" \
-	"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
-	"bsp_script=boot.scr\0" \
-	"image=Image\0" \
-	"splashimage=0x50000000\0" \
-	"conf_addr=0x40000000\0"			\
-	"cmdline_addr=0x41000000\0"			\
-	"fdt_overlay_addr=0x42000000\0"			\
-	"fdt_addr_r=0x43000000\0"			\
-	"fdt_addr=0x43000000\0"			\
+	"snap_mode=\"\"\0" \
+	"snap_try_core=\"\"\0" \
+	"snap_try_kernel=\"\"\0" \
+	"export_vars=snap_core snap_kernel snap_menuentry snap_mode snap_try_core snap_try_kernel snappy\0" \
+	"export_env=env export -c 0x40800000 ${export_vars}; save mmc ${mmcdev}:${mmcpart} 0x40800000 /uboot.env ${filesize}\0" \
+	"conf_addr=0x800000\0"			\
 	"fdt_high=0xffffffffffffffff\0"		\
-	"boot_fdt=try\0" \
-	"fdtfile=imx8mq-pe100a.dtb\0" \
-	"bootm_size=0x10000000\0" \
-	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
-	"mmcpart=1\0" \
-	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
+	"mmcdev=0" \
+	"mmcpart=1" \
+	"snappy_boot=if test ${snap_mode} = \"try\"; then setenv snap_mode \"trying\"; run export_env; if test ${snap_try_core} != \"\"; then setenv snap_core ${snap_try_core}; fi; if test ${snap_try_kernel} != \"\"; then setenv snap_kernel ${snap_try_kernel}; fi; elif test ${snap_mode} = \"trying\"; then setenv snap_mode \"\"; run export_env; fi;\0" \
+	"snappy_bootarg=vmalloc=400M consoleblank=0 quiet rootwait fixrtc root=/dev/disk/by-label/writable init=/lib/systemd/systemd ro panic=-1 net.ifnames=0\0" \
 	"mmcautodetect=yes\0" \
-	"mmcargs=setenv bootargs ${jh_clk} ${mcore_clk} console=${console} root=${mmcroot}\0 " \
-	"loadbootscript=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${bsp_script};\0" \
-	"bootscript=echo Running bootscript from mmc ...; " \
-		"source\0" \
-	"loadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
-	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr_r} ${fdtfile}\0" \
-	"mmcboot=echo Booting from mmc ...; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if run loadfdt; then " \
-				"booti ${loadaddr} - ${fdt_addr_r}; " \
-			"else " \
-				"echo WARN: Cannot load the DT; " \
-			"fi; " \
-		"else " \
-			"echo wait for boot; " \
-		"fi;\0" \
-	"netargs=setenv bootargs ${jh_clk} ${mcore_clk} console=${console} " \
-		"root=/dev/nfs " \
-		"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
+	"loadenv=if fatload mmc ${mmcdev}:${mmcpart} 0x40800000 uboot.env; then run importcfg; else echo Failed to load uboot variables!; fi \0" \
+	"importcfg=if env import -b 0x40800000 ${filesize}; then echo Loaded Ubuntu Core environment, verifying vars...; run snappy_verify; else echo Failed to load Ubuntu Core environment; fi\0" \
+	"snappy_verify=if test ${snap_core} = \"\" ; then echo \"snap_core not defined, wrong environment!\"; else if test ${snap_kernel} = \"\" ; then echo \"snap_kernel not defined, wrong environment!\"; else echo \"Setting up the bootargs...\"; run snappy_boot; setenv bootargs ${snappy_bootarg} snap_core=${snap_core} snap_kernel=${snap_kernel} ; fi; fi; \0" \
+	"verifiedboot=if fatload mmc ${mmcdev}:${mmcpart} 0x50000000 ${snap_kernel}; then " \
+		"echo VBoot-> Loaded image, booting; " \
+		"bootm 0x50000000#conf-0;  " \
+	"else " \
+		"echo VBoot-> Failed to boot/load image. Stopping; " \
+	"fi; \0" \
+	"vboot=run loadenv; run verifiedboot; \0" \
 	"fastboot=echo Enter Fastboot Mode ...; " \
 		"fastboot 0;\0" \
-	"pxeboot=echo Booting from pxe ...; " \
-		"dhcp; " \
-		"pxe get; " \
-		"pxe boot;\0" \
-	"netboot=echo Booting from net ...; " \
-		"run netargs;  " \
-		"if test ${ip_dyn} = yes; then " \
-			"setenv get_cmd dhcp; " \
-		"else " \
-			"setenv get_cmd tftp; " \
-		"fi; " \
-		"${get_cmd} ${loadaddr} ${image}; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if ${get_cmd} ${fdt_addr_r} ${fdtfile}; then " \
-				"booti ${loadaddr} - ${fdt_addr_r}; " \
-			"else " \
-				"echo WARN: Cannot load the DT; " \
-			"fi; " \
-		"else " \
-			"booti; " \
-		"fi;\0" \
-	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
-			"mmc dev ${mmcdev}; if mmc rescan; then " \
-			   "if run loadbootscript; then " \
-				   "run bootscript; " \
-			   "else " \
-				   "if run loadimage; then " \
-					   "run mmcboot; " \
-				   "else run fastboot; " \
-				   "fi; " \
-			   "fi; " \
-		   "fi;"
+	"fi;"
+
+#define CONFIG_BOOTCOMMAND \
+	   "mmc dev ${mmcdev}; if mmc rescan; then " \
+		   "echo IoTnxt ASUSIoT PE100A VBoot -> Booting...;" \
+			   "run vboot;" \
+		"fi"
 
 /* Link Definitions */
 
