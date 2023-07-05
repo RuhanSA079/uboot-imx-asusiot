@@ -723,9 +723,11 @@ int boot_relocate_fdt(struct lmb *lmb, char **of_flat_tree, ulong *of_size)
 	int	err;
 	int	disable_relocation = 0;
 
+	/* RuhanvdB -> Patchout the hwconfig parsing
 	struct fdt_header *working_fdt;
 	struct hw_config hw_conf;
 	memset(&hw_conf, 0, sizeof(struct hw_config));
+	
 	parse_hw_config(&hw_conf);
 
 	printf("config.txt valid = %d\n", hw_conf.valid);
@@ -744,7 +746,7 @@ int boot_relocate_fdt(struct lmb *lmb, char **of_flat_tree, ulong *of_size)
 
 		for (int i = 0; i < hw_conf.overlay_count; i++)
 			printf("get overlay name: %s\n", hw_conf.overlay_file[i]);
-	}
+	} */
 
 	/* nothing to do */
 	if (*of_size == 0)
@@ -799,13 +801,13 @@ int boot_relocate_fdt(struct lmb *lmb, char **of_flat_tree, ulong *of_size)
 		 * for padding
 		 */
 		fdt_set_totalsize(of_start, of_len);
-		printf("   Using Device Tree in place at %p, end %p\n",
+		printf("Using Device Tree in place at %p, end %p\n",
 		       of_start, of_start + of_len - 1);
 	} else {
 		debug("## device tree at %p ... %p (len=%ld [0x%lX])\n",
 		      fdt_blob, fdt_blob + *of_size - 1, of_len, of_len);
 
-		printf("   Loading Device Tree to %p, end %p ... ",
+		printf("Loading Device Tree to %p, end %p ... ",
 		       of_start, of_start + of_len - 1);
 
 		err = fdt_open_into(fdt_blob, of_start, of_len);
@@ -822,11 +824,13 @@ int boot_relocate_fdt(struct lmb *lmb, char **of_flat_tree, ulong *of_size)
 	if (CONFIG_IS_ENABLED(CMD_FDT))
 		set_working_fdt_addr(map_to_sysmem(*of_flat_tree));
 
+	/*RuhanvdB -> Patch out fdt resize
 	working_fdt = resize_working_fdt();
 	if(working_fdt != NULL) {
 		if(hw_conf.valid)
 			handle_hw_conf(NULL, working_fdt, &hw_conf);
 	}
+ 	*/
 
 	return 0;
 
