@@ -58,12 +58,61 @@
 #define BOOTENV
 #endif
 
-/* RuhanvdB -> Patch UBoot for Ubuntu Core 18 */
-#define CONFIG_ENV_WHITELIST  "snap_mode","snap_core","snap_try_core","snap_kernel","snap_try_kernel"
+/* RuhanvdB -> Patch UBoot for Ubuntu Core 20 */
+#define CONFIG_ENV_WHITELIST  "snap_kernel snap_try_kernel kernel_status snapd_recovery_mode snapd_recovery_system snapd_recovery_kernel"
 /*
  * Another approach is add the clocks for inmates into clks_init_on
  * in clk-imx8mq.c, then clk_ingore_unused could be removed.
  */
+
+#define UBUNTU_ENV_LOAD_BOOT_CONFIG \
+    "load_uc=" \
+      "setenv kernel_bootpart ${mmc_seed_part};"\
+      "load ${devtype} ${mmcdev}:${kernel_bootpart} ${loadaddr} ${core_state};" \
+      "env import -v -c ${loadaddr} ${filesize} ${recovery_vars};" \
+      "if test \"${snapd_recovery_mode}\" = \"run\"; then " \
+        "setenv bootargs \"console=${console} snapd_recovery_mode=${snapd_recovery_mode} ${snapd_standard_params}\";" \
+        "setenv kernel_bootpart ${mmc_boot_part}; " \
+        "load ${devtype} ${mmcdev}:${kernel_bootpart} ${loadaddr} ${core_state}; " \
+        "env import -v -c ${loadaddr} ${filesize} ${kernel_vars}; " \
+        "setenv kernel_name ${snap_kernel}; " \
+        "if test -n \"${kernel_status}\"; then " \
+          "if test \"${kernel_status}\" = \"try\"; then " \
+            "if test -n \"${snap_try_kernel}\"; then " \
+              "setenv kernel_status trying; " \
+              "setenv kernel_name \"${snap_try_kernel}\"; " \
+            "fi; " \
+          "elif test \"${kernel_status}\" = \"trying\"; then " \
+            "setenv kernel_status \"\"; " \
+          "fi;" \
+          "env export -c ${loadaddr} ${kernel_vars}; " \
+          "save ${devtype} ${mmcdev}:${kernel_bootpart} ${loadaddr} ${core_state} ${filesize}; " \
+        "fi; " \
+        "setenv kernel_prefix \"/uboot/ubuntu/${kernel_name}/\"; " \
+      "else " \
+        "setenv bootargs \"console=${console} snapd_recovery_mode=${snapd_recovery_mode} snapd_recovery_system=${snapd_recovery_system} ${snapd_standard_params}\";" \
+        "setenv kernel_prefix \"/systems/${snapd_recovery_system}/kernel/\"; " \
+      "fi; " \
+      "run loadfiles\0"
+
+#define UBUNTU_ENV_DEFAULT \
+  "mmc_seed_part=1\0" \
+  "mmc_boot_part=2\0" \
+  "devtype=mmc\0" \
+  "mmcdev=1\0" \
+  "mmcpart=1\0" \
+  "console=ttymxc0,115200\0"	\
+  "kernel_filename=kernel.img\0" \
+  "initrd_filename=initrd.img\0" \
+  "core_state=/uboot/ubuntu/boot.sel\0" \
+  "kernel_vars=snap_kernel snap_try_kernel kernel_status\0" \
+  "recovery_vars=snapd_recovery_mode snapd_recovery_system snapd_recovery_kernel\0" \
+  "snapd_recovery_mode=install\0" \
+  "snapd_standard_params=panic=-1 systemd.gpt_auto=0 rd.systemd.unit=basic.target\0" \
+  UBUNTU_ENV_LOAD_BOOT_CONFIG
+
+#define UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
+    "loadfiles=load ${devtype} ${mmcdev}:${kernel_bootpart} ${fitloadaddr} ${kernel_prefix}/${kernel_filename}\0"
 
 #define CONFIG_MFG_ENV_SETTINGS \
 	CONFIG_MFG_ENV_SETTINGS_DEFAULT \
@@ -74,30 +123,16 @@
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	CONFIG_MFG_ENV_SETTINGS \
-	"snap_mode=\"\"\0" \
-	"snap_try_core=\"\"\0" \
-	"snap_try_kernel=\"\"\0" \
-	"export_vars=snap_core snap_kernel snap_menuentry snap_mode snap_try_core snap_try_kernel snappy\0" \
-	"export_env=env export -c 0x40800000 ${export_vars}; save mmc ${mmcdev}:${mmcpart} 0x40800000 /uboot.env ${filesize}\0" \
-	"conf_addr=0x800000\0"			\
+ 	UBUNTU_ENV_DEFAULT \
+	UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
+	"boot_uc=run load_uc;bootm ${fitloadaddr}#conf-0\0" \
+	"fitloadaddr=0x45000000\0" \
 	"fdt_high=0xffffffffffffffff\0"		\
 	"fdt_addr_r=0x43000000\0"		\
 	"fdt_addr=0x43000000\0"			\
 	"mmcdev=0\0" \
 	"mmcpart=1\0" \
-	"snappy_boot=if test ${snap_mode} = \"try\"; then setenv snap_mode \"trying\"; run export_env; if test ${snap_try_core} != \"\"; then setenv snap_core ${snap_try_core}; fi; if test ${snap_try_kernel} != \"\"; then setenv snap_kernel ${snap_try_kernel}; fi; elif test ${snap_mode} = \"trying\"; then setenv snap_mode \"\"; run export_env; fi;\0" \
-	"snappy_bootarg=vmalloc=400M consoleblank=0 quiet rootwait fixrtc root=/dev/disk/by-label/writable init=/lib/systemd/systemd ro panic=-1 net.ifnames=0\0" \
 	"mmcautodetect=yes\0" \
-	"loadenv=if fatload mmc ${mmcdev}:${mmcpart} 0x40800000 uboot.env; then run importcfg; else echo Failed to load uboot variables!; fi \0" \
-	"importcfg=if env import -b 0x40800000 ${filesize}; then echo Loaded Ubuntu Core environment, verifying vars...; run snappy_verify; else echo Failed to load Ubuntu Core environment; fi\0" \
-	"snappy_verify=if test ${snap_core} = \"\" ; then echo \"snap_core not defined, wrong environment!\"; else if test ${snap_kernel} = \"\" ; then echo \"snap_kernel not defined, wrong environment!\"; else echo \"Setting up the bootargs...\"; run snappy_boot; setenv bootargs ${snappy_bootarg} snap_core=${snap_core} snap_kernel=${snap_kernel} ; fi; fi; \0" \
-	"verifiedboot=if fatload mmc ${mmcdev}:${mmcpart} 0x50000000 ${snap_kernel}; then " \
-		"echo VBoot-> Loaded image, booting; " \
-		"bootm 0x50000000#conf-0;  " \
-	"else " \
-		"echo VBoot-> Failed to boot/load image. Stopping; " \
-	"fi; \0" \
-	"vboot=run loadenv; run verifiedboot; \0" \
 	"fastboot=echo Enter Fastboot Mode ...; " \
 		"fastboot 0;\0" \
 	"fi;"
@@ -106,7 +141,7 @@
 #define CONFIG_BOOTCOMMAND \
 	   "mmc dev ${mmcdev}; if mmc rescan; then " \
 		   "echo IoTnxt ASUSIoT PE100A VBoot -> Booting...;" \
-			   "run vboot;" \
+			   "run boot_uc;" \
 		"fi"
 
 /* Link Definitions */
