@@ -116,7 +116,7 @@
 
 #define UBUNTU_ENV_LOAD_BOOT_FILES \
   "load_kernel=load ${devtype} ${mmcdev}:${kernel_bootpart} ${loadaddr} ${kernel_prefix}/${kernel_filename}\0" \
-  "load_fdt=load ${devtype} ${mmcdev}:${kernel_bootpart} ${fdt_addr} ${kernel_prefix}/dtbs/freescale/${fdt_file}\0" \
+  "load_fdt=load ${devtype} ${mmcdev}:${kernel_bootpart} ${fdt_addr} ${kernel_prefix}/dtbs/${fdt_file}\0" \
   "load_initrd=load ${devtype} ${mmcdev}:${kernel_bootpart} ${initrd_addr} ${kernel_prefix}/${initrd_filename}; setenv initrd_size ${filesize}\0" \
   "loadfiles=run load_kernel; run load_initrd; run load_fdt\0"
 
