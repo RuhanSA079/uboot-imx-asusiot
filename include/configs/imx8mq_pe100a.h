@@ -69,6 +69,8 @@
 #define BOOTENV
 #endif
 
+#define CONFIG_SYS_MMC_ENV_DEV		2
+
 /*
  * Another approach is add the clocks for inmates into clks_init_on
  * in clk-imx8mq.c, then clk_ingore_unused could be removed.
@@ -96,12 +98,11 @@
 	JAILHOUSE_ENV \
 	"scriptaddr=0x43500000\0" \
 	"kernel_addr_r=" __stringify(CONFIG_LOADADDR) "\0" \
-	"bsp_script=boot.scr\0" \
-	"image=Image\0" \
-	"splashimage=0x50000000\0" \
-        "splashsource=mmc_fs\0" \
-	"splashfile=logo.bmp\0" \
-	"splashdevpart=3\0 " \
+	UBUNTU_ENV_DEFAULT \
+	UBUNTU_ENV_LOAD_BOOT_FILES \
+	"mmc_seed_part=1\0" \
+	"mmc_boot_part=2\0" \
+	"devtype=mmc\0" \
 	"console=ttymxc0,115200\0" \
 	"conf_addr=0x40000000\0"		\
 	"cmdline_addr=0x41000000\0"		\
@@ -114,61 +115,12 @@
 	"bootm_size=0x10000000\0" \
 	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
 	"mmcpart=" __stringify(CONFIG_SYS_MMC_IMG_LOAD_PART) "\0" \
-	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
-	"mmcautodetect=yes\0" \
-	"mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot}\0 " \
-	"loadbootscript=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${bsp_script};\0" \
-	"bootscript=echo Running bootscript from mmc ...; " \
-		"source\0" \
-	"loadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
-	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr_r} ${fdtfile}\0" \
-	"mmcboot=echo Booting from mmc ...; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if run loadfdt; then " \
-				"booti ${loadaddr} - ${fdt_addr_r}; " \
-			"else " \
-				"echo WARN: Cannot load the DT; " \
-			"fi; " \
-		"else " \
-			"echo wait for boot; " \
-		"fi;\0" \
-	"netargs=setenv bootargs ${jh_clk} console=${console} " \
-		"root=/dev/nfs " \
-		"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
 	"fastboot=echo Enter Fastboot Mode ...; " \
 		"fastboot 0;\0" \
-	"pxeboot=echo Booting from pxe ...; " \
-		"dhcp; " \
-		"pxe get; " \
-		"pxe boot;\0" \
-	"netboot=echo Booting from net ...; " \
-		"run netargs;  " \
-		"if test ${ip_dyn} = yes; then " \
-			"setenv get_cmd dhcp; " \
-		"else " \
-			"setenv get_cmd tftp; " \
-		"fi; " \
-		"${get_cmd} ${loadaddr} ${image}; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if ${get_cmd} ${fdt_addr_r} ${fdtfile}; then " \
-				"booti ${loadaddr} - ${fdt_addr_r}; " \
-			"else " \
-				"echo WARN: Cannot load the DT; " \
-			"fi; " \
-		"else " \
-			"booti; " \
-		"fi;\0" \
-	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
-			"mmc dev ${mmcdev}; if mmc rescan; then " \
-			   "if run loadbootscript; then " \
-				   "run bootscript; " \
-			   "else " \
-				   "if run loadimage; then " \
-					   "run mmcboot; " \
-				   "else run fastboot; " \
-				   "fi; " \
-			   "fi; " \
-		   "fi;"
+	"mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot}\0" 
+
+#define CONFIG_BOOTCOMMAND \
+	   "run boot_uc;"
 
 /* Link Definitions */
 #define CONFIG_LOADADDR			0x40480000
@@ -182,7 +134,6 @@
 #define CONFIG_SYS_INIT_SP_ADDR \
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
-#define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC2 */
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		SZ_32M
