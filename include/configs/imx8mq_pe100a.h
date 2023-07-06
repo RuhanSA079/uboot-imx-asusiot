@@ -99,7 +99,7 @@
 	"scriptaddr=0x43500000\0" \
 	"kernel_addr_r=" __stringify(CONFIG_LOADADDR) "\0" \
 	UBUNTU_ENV_DEFAULT \
-	UBUNTU_ENV_LOAD_BOOT_FILES \
+	UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
 	"mmc_seed_part=1\0" \
 	"mmc_boot_part=2\0" \
 	"devtype=mmc\0" \
@@ -117,7 +117,9 @@
 	"mmcpart=" __stringify(CONFIG_SYS_MMC_IMG_LOAD_PART) "\0" \
 	"fastboot=echo Enter Fastboot Mode ...; " \
 		"fastboot 0;\0" \
-	"mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot}\0" 
+	"mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot}\0" \
+	"boot_uc=run load_uc;bootm ${fitloadaddr}#${fdt_file}\0" \
+	"fitloadaddr=0x45000000\0"
 
 #define CONFIG_BOOTCOMMAND \
 	   "run boot_uc;"
