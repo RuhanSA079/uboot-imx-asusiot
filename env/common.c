@@ -127,7 +127,7 @@ int env_import(const char *buf, int check, int flags)
 	}
 
 	if (himport_r(&env_htab, (char *)ep->data, ENV_SIZE, '\0', flags, 0,
-			0, NULL)) {
+			0, NULL, 0)) {
 		gd->flags |= GD_FLG_ENV_READY;
 		return 0;
 	}
