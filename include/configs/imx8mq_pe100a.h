@@ -121,6 +121,7 @@
 	"boot_uc=run load_uc;bootm ${fitloadaddr}#${fdt_file}\0" \
 	"fitloadaddr=0x45000000\0"
 
+#undef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND \
 	   "run boot_uc;"
 
