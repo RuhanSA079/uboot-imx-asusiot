@@ -114,6 +114,12 @@
 #define UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
     "loadfiles=load ${devtype} ${mmcdev}:${kernel_bootpart} ${fitloadaddr} ${kernel_prefix}/${kernel_filename}\0"
 
+#define UBUNTU_ENV_LOAD_BOOT_FILES \
+  "load_kernel=load ${devtype} ${mmcdev}:${kernel_bootpart} ${loadaddr} ${kernel_prefix}/${kernel_filename}\0" \
+  "load_fdt=load ${devtype} ${mmcdev}:${kernel_bootpart} ${fdt_addr} ${kernel_prefix}/dtbs/freescale/${fdt_file}\0" \
+  "load_initrd=load ${devtype} ${mmcdev}:${kernel_bootpart} ${initrd_addr} ${kernel_prefix}/${initrd_filename}; setenv initrd_size ${filesize}\0" \
+  "loadfiles=run load_kernel; run load_initrd; run load_fdt\0"
+
 #define CONFIG_MFG_ENV_SETTINGS \
 	CONFIG_MFG_ENV_SETTINGS_DEFAULT \
 	"initrd_addr=0x43800000\0" \
@@ -124,8 +130,8 @@
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	CONFIG_MFG_ENV_SETTINGS \
  	UBUNTU_ENV_DEFAULT \
-	UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
-	"boot_uc=run load_uc;bootm ${fitloadaddr}#conf-0\0" \
+	UBUNTU_ENV_LOAD_BOOT_FILES \
+	"boot_uc=run load_uc;booti ${loadaddr} ${initrd_addr}:${initrd_size} ${fdt_addr}\0" \
 	"fitloadaddr=0x45000000\0" \
 	"fdt_high=0xffffffffffffffff\0"		\
 	"fdt_addr_r=0x43000000\0"		\
