@@ -425,6 +425,7 @@ config ENV_IS_IN_UBI
 
 config SYS_REDUNDAND_ENVIRONMENT
 	bool "Enable redundant environment support"
+        depends on ENV_IS_IN_EEPROM || ENV_IS_IN_FLASH || ENV_IS_IN_MMC || ENV_IS_IN_NAND || ENV_IS_IN_SPI_FLASH || ENV_IS_IN_UBI || ENV_IS_NOWHERE
 	help
 	  Normally, the environemt is stored in a single location.  By
 	  selecting this option, you can then define where to hold a redundant
