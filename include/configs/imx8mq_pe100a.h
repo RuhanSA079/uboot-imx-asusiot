@@ -130,12 +130,13 @@
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	CONFIG_MFG_ENV_SETTINGS \
  	UBUNTU_ENV_DEFAULT \
-	UBUNTU_ENV_LOAD_BOOT_FILES \
-	"boot_uc=run load_uc;booti ${loadaddr} ${initrd_addr}:${initrd_size} ${fdt_addr}\0" \
+	UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
+	"boot_uc=run load_uc;bootm ${fitloadaddr}#conf-0\0" \
 	"fitloadaddr=0x45000000\0" \
 	"fdt_high=0xffffffffffffffff\0"		\
 	"fdt_addr_r=0x43000000\0"		\
 	"fdt_addr=0x43000000\0"			\
+	"fdt_file=imx8mq-pe100a.dtb\0"		\
 	"mmcdev=0\0" \
 	"mmcpart=1\0" \
 	"mmcautodetect=yes\0" \
