@@ -2,6 +2,7 @@
 /*
  * (C) Copyright 2000
  * Wolfgang Denk, DENX Software Engineering, wd@denx.de.
+ * RuhanvdB -> Revert ASUS's code changes
  */
 
 #include <common.h>
@@ -682,10 +683,10 @@ void autoboot_command(const char *s)
 	gpio_request(GPIO5_IO04, "EEPROM_WRITE_CONTROL");
 	gpio_direction_output(GPIO5_IO04, 1);
 
-	set_bootargs();
-	parse_cmdline();
-	printf("bootargs: %s\n", bootargs);
-	env_set("bootargs", bootargs);
+	// set_bootargs();
+	// parse_cmdline();
+	// printf("bootargs: %s\n", bootargs);
+	// env_set("bootargs", bootargs);
 
 	if (s && (stored_bootdelay == -2 ||
 		 (stored_bootdelay != -1 && !abortboot(stored_bootdelay)))) {
