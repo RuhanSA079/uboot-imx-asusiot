@@ -113,12 +113,8 @@
 #define UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
     "loadfiles=load ${devtype} ${mmcdev}:${kernel_bootpart} ${fitloadaddr} ${kernel_prefix}/${kernel_filename}\0"
 
-#define CONFIG_MFG_ENV_SETTINGS \
-	CONFIG_MFG_ENV_SETTINGS_DEFAULT \
-
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS		\
-	CONFIG_MFG_ENV_SETTINGS \
  	UBUNTU_ENV_DEFAULT \
 	UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
 	"boot_uc=run load_uc;bootm ${fitloadaddr}#conf-0\0" \
