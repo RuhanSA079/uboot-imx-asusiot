@@ -115,9 +115,6 @@
 
 #define CONFIG_MFG_ENV_SETTINGS \
 	CONFIG_MFG_ENV_SETTINGS_DEFAULT \
-	"initrd_addr=0x43800000\0" \
-	"initrd_high=0xffffffffffffffff\0" \
-	"emmc_dev=0\0"\
 
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS		\
@@ -132,6 +129,9 @@
 	"fdt_file=imx8mq-pe100a.dtb\0"		\
 	"mmcdev=0\0" \
 	"mmcpart=1\0" \
+	"initrd_addr=0x43800000\0" \
+	"initrd_high=0xffffffffffffffff\0" \
+	"emmc_dev=0\0"\
 	"mmcautodetect=yes\0" \
 	"fastboot=echo Enter Fastboot Mode ...; " \
 		"fastboot 0;\0" \
