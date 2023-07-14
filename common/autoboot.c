@@ -584,9 +584,9 @@ static int abortboot(int bootdelay)
 {
 	int abort = 0;
 
-	run_command("mmc partconf 0", 0);
-	printf("Set MMC 0 partconf: 0x0, 0x1, 0x0\n");
-	run_command("mmc partconf 0 0 1 0", 0);
+	//run_command("mmc partconf 0", 0);
+	//printf("Set MMC 0 partconf: 0x0, 0x1, 0x0\n");
+	//run_command("mmc partconf 0 0 1 0", 0);
 
 	if (bootdelay >= 0) {
 		if (autoboot_keyed())
@@ -688,24 +688,27 @@ void autoboot_command(const char *s)
 	// printf("bootargs: %s\n", bootargs);
 	// env_set("bootargs", bootargs);
 
-	if (s && (stored_bootdelay == -2 ||
-		 (stored_bootdelay != -1 && !abortboot(stored_bootdelay)))) {
+	if (s && (stored_bootdelay == -2 || (stored_bootdelay != -1 && !abortboot(stored_bootdelay)))) 
+	{
 		bool lock;
 		int prev;
 
-		lock = autoboot_keyed() &&
-			!IS_ENABLED(CONFIG_AUTOBOOT_KEYED_CTRLC);
+		lock = autoboot_keyed() && !IS_ENABLED(CONFIG_AUTOBOOT_KEYED_CTRLC);
 		if (lock)
+		{
 			prev = disable_ctrlc(1); /* disable Ctrl-C checking */
+		}
 
 		run_command_list(s, -1, 0);
 
 		if (lock)
+		{
 			disable_ctrlc(prev);	/* restore Ctrl-C checking */
+		}
 	}
 
-	if (IS_ENABLED(CONFIG_AUTOBOOT_USE_MENUKEY) &&
-	    menukey == AUTOBOOT_MENUKEY) {
+	if (IS_ENABLED(CONFIG_AUTOBOOT_USE_MENUKEY) && menukey == AUTOBOOT_MENUKEY) 
+	{
 		s = env_get("menucmd");
 		if (s)
 			run_command_list(s, -1, 0);
