@@ -174,20 +174,13 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		}
 		break;
 #endif
-#ifdef CONFIG_ANDROID_BOOT_IMAGE
-	case IMAGE_FORMAT_ANDROID:
-		/* Do this authentication in boota command */
-		break;
-#endif
-
-#ifdef CONFIG_FIT
 	case IMAGE_FORMAT_FIT:
-		if (authenticate_image(image_load_addr, fit_get_size((void *)image_load_addr)) != 0) {
+		if (authenticate_image(image_load_addr, 
+			image_get_image_size((image_header_t *)image_load_addr)) != 0) {
 			printf("Authenticate FIT image Fail, Please check\n");
 			return 1;
 		}
 		break;
-#endif
 	default:
 		printf("Not valid image format for Authentication, Please check\n");
 		return 1;
