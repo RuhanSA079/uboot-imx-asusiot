@@ -150,7 +150,7 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		break;
 	case IMAGE_FORMAT_FIT:
 		if (authenticate_image(image_load_addr, 
-			image_get_image_size((image_header_t *)image_load_addr)) != 0) {
+			fit_get_size((void *)image_load_addr)) != 0)) {
 			printf("Authenticate FIT image Fail, Please check\n");
 			return 1;
 		}
@@ -183,7 +183,7 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 #endif
 	case IMAGE_FORMAT_FIT:
 		if (authenticate_image(image_load_addr, 
-			image_get_image_size((image_header_t *)image_load_addr)) != 0) {
+			fit_get_size((void *)image_load_addr)) != 0) {
 			printf("Authenticate FIT image Fail, Please check\n");
 			return 1;
 		}
