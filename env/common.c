@@ -299,6 +299,10 @@ int env_set_default_vars(int nvars, char * const vars[], int flags)
  */
 int env_import(const char *buf, int check, int flags)
 {
+	#ifndef CONFIG_ENV_WHITELIST
+	define CONFIG_ENV_WHITELIST "all";
+	#endif
+	
 	char * const vars[] = {CONFIG_ENV_WHITELIST};
 	const int nvars = sizeof(vars) / sizeof(char *);
 	// first import default variables
