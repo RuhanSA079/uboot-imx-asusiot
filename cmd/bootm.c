@@ -122,12 +122,13 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		 * Right now we assume the first arg should never be '-'
 		 */
 		if ((*endp != 0) && (*endp != ':') && (*endp != '#'))
+		{
 			return do_bootm_subcommand(cmdtp, flag, argc, argv);
+		}
 	}
 
 #ifdef CONFIG_IMX_HAB
-	extern int authenticate_image(
-			uint32_t ddr_start, uint32_t raw_image_size);
+	extern int authenticate_image(uint32_t ddr_start, uint32_t raw_image_size);
 
 #ifdef CONFIG_IMX_OPTEE
 	ulong tee_addr = 0;
@@ -139,18 +140,19 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		printf("Not valid tee_addr, Please check\n");
 		return 1;
 	}
-
-	switch (genimg_get_format((const void *)tee_addr)) {
-	case IMAGE_FORMAT_LEGACY:
-		if (authenticate_image(tee_addr,
-		       image_get_image_size((image_header_t *)tee_addr)) != 0) {
-		       printf("Authenticate uImage Fail, Please check\n");
-		       return 1;
-		}
-		break;
-	default:
-		printf("Not valid image format for Authentication, Please check\n");
-		return 1;
+	printf("bootm: IMX_OPTEE: Checking image...\n");
+	switch (genimg_get_format((const void *)tee_addr))
+	{
+		case IMAGE_FORMAT_LEGACY:
+			if (authenticate_image(tee_addr,
+		       	image_get_image_size((image_header_t *)tee_addr)) != 0) {
+		       	printf("Authenticate uImage Fail, Please check\n");
+		       	return 1;
+			}
+			break;
+		default:
+			printf("Not valid image format for Authentication, Please check\n");
+			return 1;
 	};
 
 	ret = bootz_setup(image_load_addr, &zi_start, &zi_end);
@@ -163,10 +165,11 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 	}
 
 #else
-
+	printf("bootm: NORMAL_BOOT: Checking image...\n");
 	switch (genimg_get_format((const void *)image_load_addr)) {
 #if defined(CONFIG_LEGACY_IMAGE_FORMAT)
 	case IMAGE_FORMAT_LEGACY:
+		printf("bootm: NORMAL_BOOT: IMAGE_FORMAT_LEGACY\n");
 		if (authenticate_image(image_load_addr,
 			image_get_image_size((image_header_t *)image_load_addr)) != 0) {
 			printf("Authenticate uImage Fail, Please check\n");
@@ -182,6 +185,7 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 
 #ifdef CONFIG_FIT
 	case IMAGE_FORMAT_FIT:
+		printf("bootm: NORMAL_BOOT: IMAGE_FORMAT_FIT\n");
 		if (authenticate_image(image_load_addr, fit_get_size((void *)image_load_addr)) != 0) {
 			printf("Authenticate FIT image Fail, Please check\n");
 			return 1;
@@ -189,6 +193,7 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		break;
 #endif
 	default:
+		
 		printf("Not valid image format for Authentication, Please check\n");
 		return 1;
 	}
