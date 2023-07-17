@@ -549,7 +549,9 @@ int fprintf(int file, const char *fmt, ...)
 int getchar(void)
 {
 	int ch;
-
+	/*RuhanvdB -> Disable only input reading of Console, not output*/
+	return 0;
+	
 	if (IS_ENABLED(CONFIG_DISABLE_CONSOLE) && (gd->flags & GD_FLG_DISABLE_CONSOLE))
 		return 0;
 
@@ -571,6 +573,9 @@ int getchar(void)
 
 int tstc(void)
 {
+	/*RuhanvdB -> Disable only input reading of Console, not output*/
+	return 0;
+	
 	if (IS_ENABLED(CONFIG_DISABLE_CONSOLE) && (gd->flags & GD_FLG_DISABLE_CONSOLE))
 		return 0;
 
