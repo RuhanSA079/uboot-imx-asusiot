@@ -165,8 +165,9 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 	}
 
 #else
-	printf("bootm: NORMAL_BOOT: Checking image...\n");
-	switch (genimg_get_format((const void *)image_load_addr)) {
+	printf("bootm: NORMAL_BOOT: Checking image at addr 0x%08lX ...\n", image_load_addr);
+	switch (genimg_get_format((const void *)image_load_addr)) 
+	{
 #if defined(CONFIG_LEGACY_IMAGE_FORMAT)
 	case IMAGE_FORMAT_LEGACY:
 		printf("bootm: NORMAL_BOOT: IMAGE_FORMAT_LEGACY\n");
@@ -193,7 +194,7 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		break;
 #endif
 	default:
-		
+		printf("bootm: NORMAL_BOOT: DEFAULT\n");
 		printf("Not valid image format for Authentication, Please check\n");
 		return 1;
 	}
