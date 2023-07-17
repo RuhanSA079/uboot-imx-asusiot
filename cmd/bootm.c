@@ -127,8 +127,8 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		}
 	}
 
-#ifdef CONFIG_IMX_HAB
-	extern int authenticate_image(uint32_t ddr_start, uint32_t raw_image_size);
+//#ifdef CONFIG_IMX_HAB
+	//extern int authenticate_image(uint32_t ddr_start, uint32_t raw_image_size);
 
 #ifdef CONFIG_IMX_OPTEE
 	ulong tee_addr = 0;
@@ -198,7 +198,6 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		printf("Not valid image format for Authentication, Please check\n");
 		return 1;
 	}
-#endif
 #endif
 
 	return do_bootm_states(cmdtp, flag, argc, argv, BOOTM_STATE_START |
