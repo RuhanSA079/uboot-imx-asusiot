@@ -148,13 +148,6 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		       return 1;
 		}
 		break;
-	case IMAGE_FORMAT_FIT:
-		if (authenticate_image(image_load_addr, 
-			fit_get_size((void *)image_load_addr)) != 0)) {
-			printf("Authenticate FIT image Fail, Please check\n");
-			return 1;
-		}
-		break;
 	default:
 		printf("Not valid image format for Authentication, Please check\n");
 		return 1;
@@ -170,7 +163,7 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 	}
 
 #else
-	printf("RuhanvdB -> Zolhack #1\n");
+
 	switch (genimg_get_format((const void *)image_load_addr)) {
 #if defined(CONFIG_LEGACY_IMAGE_FORMAT)
 	case IMAGE_FORMAT_LEGACY:
@@ -181,13 +174,20 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		}
 		break;
 #endif
+#ifdef CONFIG_ANDROID_BOOT_IMAGE
+	case IMAGE_FORMAT_ANDROID:
+		/* Do this authentication in boota command */
+		break;
+#endif
+
+#ifdef CONFIG_FIT
 	case IMAGE_FORMAT_FIT:
-		if (authenticate_image(image_load_addr, 
-			fit_get_size((void *)image_load_addr)) != 0) {
+		if (authenticate_image(image_load_addr, fit_get_size((void *)load_addr)) != 0) {
 			printf("Authenticate FIT image Fail, Please check\n");
 			return 1;
 		}
 		break;
+#endif
 	default:
 		printf("Not valid image format for Authentication, Please check\n");
 		return 1;
