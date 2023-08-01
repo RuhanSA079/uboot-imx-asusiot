@@ -58,18 +58,56 @@
 #define BOOTENV
 #endif
 
+/* RuhanvdB -> Patch U-Boot for Ubuntu Core 20 */
+define CONFIG_ENV_WHITELIST  "snap_kernel snap_try_kernel kernel_status snapd_recovery_mode snapd_recovery_system snapd_recovery_kernel"
 /*
  * Another approach is add the clocks for inmates into clks_init_on
  * in clk-imx8mq.c, then clk_ingore_unused could be removed.
  */
-#define JAILHOUSE_ENV \
-	"jh_clk= \0 " \
-	"jh_mmcboot=setenv fdtfile imx8mq-evk-root.dtb; " \
-		"setenv jh_clk clk_ignore_unused mem=1872M; " \
-			   "if run loadimage; then " \
-				   "run mmcboot; " \
-			   "else run jh_netboot; fi; \0" \
-	"jh_netboot=setenv fdtfile imx8mq-evk-root.dtb; setenv jh_clk clk_ignore_unused mem=1872MB; run netboot; \0 "
+#define UBUNTU_ENV_LOAD_BOOT_CONFIG \
+    "load_uc=" \
+      "setenv kernel_bootpart ${mmc_seed_part};"\
+      "load ${devtype} ${mmcdev}:${kernel_bootpart} ${loadaddr} ${core_state};" \
+      "env import -v -c ${loadaddr} ${filesize} ${recovery_vars};" \
+      "if test \"${snapd_recovery_mode}\" = \"run\"; then " \
+        "setenv bootargs \"snapd_recovery_mode=${snapd_recovery_mode} ${snapd_standard_params}\";" \
+        "setenv kernel_bootpart ${mmc_boot_part}; " \
+        "load ${devtype} ${mmcdev}:${kernel_bootpart} ${loadaddr} ${core_state}; " \
+        "env import -v -c ${loadaddr} ${filesize} ${kernel_vars}; " \
+        "setenv kernel_name ${snap_kernel}; " \
+        "if test -n \"${kernel_status}\"; then " \
+          "if test \"${kernel_status}\" = \"try\"; then " \
+            "if test -n \"${snap_try_kernel}\"; then " \
+              "setenv kernel_status trying; " \
+              "setenv kernel_name \"${snap_try_kernel}\"; " \
+            "fi; " \
+          "elif test \"${kernel_status}\" = \"trying\"; then " \
+            "setenv kernel_status \"\"; " \
+          "fi;" \
+          "env export -c ${loadaddr} ${kernel_vars}; " \
+          "save ${devtype} ${mmcdev}:${kernel_bootpart} ${loadaddr} ${core_state} ${filesize}; " \
+        "fi; " \
+        "setenv kernel_prefix \"/uboot/ubuntu/${kernel_name}/\"; " \
+      "else " \
+        "setenv bootargs \"snapd_recovery_mode=${snapd_recovery_mode} snapd_recovery_system=${snapd_recovery_system} ${snapd_standard_params}\";" \
+        "setenv kernel_prefix \"/systems/${snapd_recovery_system}/kernel/\"; " \
+      "fi; " \
+      "run loadfiles\0"
+
+#define UBUNTU_ENV_DEFAULT \
+  "mmc_seed_part=1\0" \
+  "mmc_boot_part=2\0" \
+  "devtype=mmc\0" \
+  "mmcdev=1\0" \
+  "mmcpart=1\0" \
+  "kernel_filename=kernel.img\0" \
+  "initrd_filename=initrd.img\0" \
+  "core_state=/uboot/ubuntu/boot.sel\0" \
+  "kernel_vars=snap_kernel snap_try_kernel kernel_status\0" \
+  "recovery_vars=snapd_recovery_mode snapd_recovery_system snapd_recovery_kernel\0" \
+  "snapd_recovery_mode=install\0" \
+  "snapd_standard_params=panic=-1 systemd.gpt_auto=0 rd.systemd.unit=basic.target net.ifnames=0\0" \
+  UBUNTU_ENV_LOAD_BOOT_CONFIG
 
 #define CONFIG_MFG_ENV_SETTINGS \
 	CONFIG_MFG_ENV_SETTINGS_DEFAULT \
@@ -78,83 +116,36 @@
 	"emmc_dev=0\0"\
 	"sd_dev=1\0" \
 
+#define UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
+    "loadfiles=load ${devtype} ${mmcdev}:${kernel_bootpart} ${fitloadaddr} ${kernel_prefix}/${kernel_filename}\0"
+
 /* Initial environment variables */
 #define CONFIG_EXTRA_ENV_SETTINGS		\
-	CONFIG_MFG_ENV_SETTINGS \
-	BOOTENV \
-	JAILHOUSE_ENV \
-	"prepare_mcore=setenv mcore_clk clk-imx8mq.mcore_booted;\0" \
-	"scriptaddr=0x43500000\0" \
-	"kernel_addr_r=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
-	"bsp_script=boot.scr\0" \
-	"image=Image\0" \
-	"splashimage=0x50000000\0" \
-	"conf_addr=0x40000000\0"			\
-	"cmdline_addr=0x41000000\0"			\
-	"fdt_overlay_addr=0x42000000\0"			\
-	"fdt_addr_r=0x43000000\0"			\
-	"fdt_addr=0x43000000\0"			\
+ 	UBUNTU_ENV_DEFAULT \
+	UBUNTU_ENV_LOAD_FIT_BOOT_FILES \
+	"boot_uc=run load_uc;bootm ${fitloadaddr}#conf-0\0" \
+	"fitloadaddr=0x45000000\0" \
 	"fdt_high=0xffffffffffffffff\0"		\
-	"boot_fdt=try\0" \
-	"fdtfile=imx8mq-pv100a.dtb\0" \
-	"bootm_size=0x10000000\0" \
-	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
+	"fdt_addr_r=0x43000000\0"		\
+	"fdt_addr=0x43000000\0"			\
+	"fdt_file=imx8mq-pv100a.dtb\0"		\
+	"mmcdev=0\0" \
 	"mmcpart=1\0" \
-	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
+	"initrd_addr=0x43800000\0" \
+	"initrd_high=0xffffffffffffffff\0" \
+	"emmc_dev=0\0"\
 	"mmcautodetect=yes\0" \
-	"mmcargs=setenv bootargs ${jh_clk} ${mcore_clk} console=${console} root=${mmcroot}\0 " \
-	"loadbootscript=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${bsp_script};\0" \
-	"bootscript=echo Running bootscript from mmc ...; " \
-		"source\0" \
-	"loadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
-	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr_r} ${fdtfile}\0" \
-	"mmcboot=echo Booting from mmc ...; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if run loadfdt; then " \
-				"booti ${loadaddr} - ${fdt_addr_r}; " \
-			"else " \
-				"echo WARN: Cannot load the DT; " \
-			"fi; " \
-		"else " \
-			"echo wait for boot; " \
-		"fi;\0" \
-	"netargs=setenv bootargs ${jh_clk} ${mcore_clk} console=${console} " \
-		"root=/dev/nfs " \
-		"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
 	"fastboot=echo Enter Fastboot Mode ...; " \
 		"fastboot 0;\0" \
-	"pxeboot=echo Booting from pxe ...; " \
-		"dhcp; " \
-		"pxe get; " \
-		"pxe boot;\0" \
-	"netboot=echo Booting from net ...; " \
-		"run netargs;  " \
-		"if test ${ip_dyn} = yes; then " \
-			"setenv get_cmd dhcp; " \
-		"else " \
-			"setenv get_cmd tftp; " \
-		"fi; " \
-		"${get_cmd} ${loadaddr} ${image}; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if ${get_cmd} ${fdt_addr_r} ${fdtfile}; then " \
-				"booti ${loadaddr} - ${fdt_addr_r}; " \
-			"else " \
-				"echo WARN: Cannot load the DT; " \
-			"fi; " \
-		"else " \
-			"booti; " \
-		"fi;\0" \
-	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
-			"mmc dev ${mmcdev}; if mmc rescan; then " \
-			   "if run loadbootscript; then " \
-				   "run bootscript; " \
-			   "else " \
-				   "if run loadimage; then " \
-					   "run mmcboot; " \
-				   "else run fastboot; " \
-				   "fi; " \
-			   "fi; " \
-		   "fi;"
+	"fi;"
+
+#undef CONFIG_BOOTCOMMAND
+#define CONFIG_BOOTCOMMAND \
+	   "mmc dev ${mmcdev}; if mmc rescan; then " \
+		   "echo ASUSIoT PV100A Core20 VBoot -> Booting...;" \
+			   "run boot_uc;" \
+		"fi"
+
 
 /* Link Definitions */
 
