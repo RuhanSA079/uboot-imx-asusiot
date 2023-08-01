@@ -59,7 +59,7 @@
 #endif
 
 /* RuhanvdB -> Patch U-Boot for Ubuntu Core 20 */
-define CONFIG_ENV_WHITELIST  "snap_kernel snap_try_kernel kernel_status snapd_recovery_mode snapd_recovery_system snapd_recovery_kernel"
+#define CONFIG_ENV_WHITELIST  "snap_kernel snap_try_kernel kernel_status snapd_recovery_mode snapd_recovery_system snapd_recovery_kernel"
 /*
  * Another approach is add the clocks for inmates into clks_init_on
  * in clk-imx8mq.c, then clk_ingore_unused could be removed.
