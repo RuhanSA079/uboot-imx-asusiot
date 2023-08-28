@@ -89,7 +89,7 @@
         "fi; " \
         "setenv kernel_prefix \"/uboot/ubuntu/${kernel_name}/\"; " \
       "else " \
-        "setenv bootargs \"snapd_recovery_mode=${snapd_recovery_mode} snapd_recovery_system=${snapd_recovery_system} ${snapd_standard_params}\";" \
+        "setenv bootargs \"console=ttymxc0,115200 snapd_recovery_mode=${snapd_recovery_mode} snapd_recovery_system=${snapd_recovery_system} ${snapd_standard_params}\";" \
         "setenv kernel_prefix \"/systems/${snapd_recovery_system}/kernel/\"; " \
       "fi; " \
       "run loadfiles\0"
